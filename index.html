@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Series Viewer with Video.js</title>
+    <title>Series Viewer with Video.js - Multiple Files</title>
     <!-- Video.js CSS -->
     <link href="https://vjs.zencdn.net/8.0.4/video-js.css" rel="stylesheet" />
     <style>
@@ -96,8 +96,8 @@
     <h1>Watch Your Series Anywhere with Video.js</h1>
     
     <div class="file-upload">
-        <label for="fileInput">Choose a video file:</label>
-        <input type="file" id="fileInput" accept="video/*">
+        <label for="fileInput">Choose video files:</label>
+        <input type="file" id="fileInput" accept="video/*" multiple>
     </div>
 
     <!-- Video.js Video Player -->
@@ -115,17 +115,29 @@
         const fileInput = document.getElementById('fileInput');
         const videoElement = document.getElementById('videoPlayer');
         const player = videojs(videoElement); // Initialize Video.js player instance
+        let videoQueue = []; // Array to hold selected videos
 
         // Handle file selection and video playback
         fileInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
+            videoQueue = Array.from(event.target.files); // Store all selected files
+            if (videoQueue.length > 0) {
+                playNextVideo(); // Start playing the first video
+            }
+        });
+
+        // Play the next video in the queue
+        function playNextVideo() {
+            if (videoQueue.length > 0) {
+                const file = videoQueue.shift(); // Remove the first video from the queue
                 const videoURL = URL.createObjectURL(file);
                 player.src({ type: file.type, src: videoURL });
                 player.load();
                 player.play();
             }
-        });
+        }
+
+        // Event listener to play the next video when the current one ends
+        player.on('ended', playNextVideo);
 
         // Fullscreen toggle with "F" key
         document.addEventListener('keydown', (event) => {
