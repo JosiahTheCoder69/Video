@@ -51,15 +51,28 @@
 
     <script>
         const fileInput = document.getElementById('fileInput');
-        const videoPlayer = document.getElementById('videoPlayer');
+        const videoElement = document.getElementById('videoPlayer');
+        const player = videojs(videoElement); // Initialize Video.js player instance
 
+        // Handle file selection and video playback
         fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
                 const videoURL = URL.createObjectURL(file);
-                videoPlayer.src = videoURL;
-                videoPlayer.load();
-                videoPlayer.play();
+                player.src({ type: file.type, src: videoURL });
+                player.load();
+                player.play();
+            }
+        });
+
+        // Fullscreen toggle with "F" key
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'f' || event.key === 'F') {
+                if (player.isFullscreen()) {
+                    player.exitFullscreen();
+                } else {
+                    player.requestFullscreen();
+                }
             }
         });
     </script>
