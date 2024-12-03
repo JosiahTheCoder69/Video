@@ -3,153 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Series Viewer with Video.js - Multiple Files</title>
-    <!-- Video.js CSS -->
-    <link href="https://vjs.zencdn.net/8.0.4/video-js.css" rel="stylesheet" />
+    <title>IPTV M3U Player</title>
     <style>
-        /* Basic Reset and Layout */
-        * {
+        body {
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-        body {
+            background-color: #f4f4f9;
+            color: #333;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            font-family: Arial, sans-serif;
-            background-color: #1d1f21;
-            color: #ffffff;
-            min-height: 100vh;
-            padding: 20px;
         }
 
-        /* Header Styling */
         h1 {
-            font-size: 2em;
-            color: #00bcd4;
-            margin-bottom: 20px;
-            text-shadow: 1px 1px 2px #00000088;
-        }
-
-        /* File Upload Styling */
-        .file-upload {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        label {
-            font-size: 1.1em;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-        #fileInput {
-            padding: 8px 12px;
-            font-size: 1em;
-            color: #1d1f21;
-            background-color: #00bcd4;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        #fileInput:hover {
-            background-color: #0097a7;
-        }
-
-        /* Video Player Styling */
-        .video-js {
+            background-color: #4caf50;
+            color: white;
+            padding: 1rem;
             width: 100%;
-            max-width: 800px;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.6);
-            margin-bottom: 20px;
-        }
-        .vjs-control-bar {
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-        .vjs-big-play-button {
-            background-color: #00bcd4;
-            border-radius: 50%;
+            text-align: center;
+            margin: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        /* Responsive Design */
+        input[type="file"],
+        input[type="text"],
+        button {
+            margin: 1rem;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border: 2px solid #4caf50;
+            border-radius: 5px;
+            background-color: white;
+            color: #4caf50;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        button:hover,
+        input[type="file"]:hover,
+        input[type="text"]:hover {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        input[type="text"] {
+            width: 60%;
+            font-size: 1rem;
+            border: 2px solid #4caf50;
+            border-radius: 5px;
+            padding: 0.5rem;
+        }
+
+        #playlist {
+            width: 80%;
+            margin: 1rem auto;
+            max-width: 800px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+        }
+
+        #channelList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #channelList li {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #channelList li:last-child {
+            border-bottom: none;
+        }
+
+        #channelList li:hover {
+            background-color: #f0f0f0;
+        }
+
+        #videoPlayer {
+            margin: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #error {
+            color: red;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
         @media (max-width: 768px) {
-            h1 {
-                font-size: 1.8em;
-            }
-            #fileInput {
-                padding: 6px 10px;
-                font-size: 0.9em;
-            }
-            .video-js {
+            #videoPlayer {
                 width: 90%;
             }
         }
     </style>
 </head>
 <body>
+    <h1>IPTV M3U Player</h1>
+    <input type="file" id="m3uFile" accept=".m3u" />
+    <button onclick="openM3U()">Load Local Playlist</button>
+    <br>
+    <input type="text" id="playlistUrl" placeholder="Enter playlist URL (e.g., .m3u)" />
+    <button onclick="loadRemoteM3U()">Load Remote Playlist</button>
 
-    <h1>Watch Your Series Anywhere with Video.js</h1>
-    
-    <div class="file-upload">
-        <label for="fileInput">Choose video files:</label>
-        <input type="file" id="fileInput" accept="video/*" multiple>
+    <div id="playlist">
+        <h2>Channels:</h2>
+        <ul id="channelList"></ul>
     </div>
 
-    <!-- Video.js Video Player -->
-    <video id="videoPlayer" class="video-js vjs-default-skin" controls preload="auto" data-setup="{}">
-        <p class="vjs-no-js">
-            To view this video please enable JavaScript, and consider upgrading to a web browser that
-            <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
-        </p>
-    </video>
+    <video id="videoPlayer" controls autoplay width="640" height="360" style="display:none;"></video>
+    <div id="error"></div>
 
-    <!-- Video.js JavaScript -->
-    <script src="https://vjs.zencdn.net/8.0.4/video.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
-        const fileInput = document.getElementById('fileInput');
-        const videoElement = document.getElementById('videoPlayer');
-        const player = videojs(videoElement); // Initialize Video.js player instance
-        let videoQueue = []; // Array to hold selected videos
+        function openM3U() {
+            const fileInput = document.getElementById('m3uFile');
+            const channelList = document.getElementById('channelList');
+            const errorDiv = document.getElementById('error');
 
-        // Handle file selection and video playback
-        fileInput.addEventListener('change', (event) => {
-            videoQueue = Array.from(event.target.files); // Store all selected files
-            if (videoQueue.length > 0) {
-                playNextVideo(); // Start playing the first video
+            if (!fileInput.files[0]) {
+                alert('Please select an M3U file.');
+                return;
             }
-        });
 
-        // Play the next video in the queue
-        function playNextVideo() {
-            if (videoQueue.length > 0) {
-                const file = videoQueue.shift(); // Remove the first video from the queue
-                const videoURL = URL.createObjectURL(file);
-                player.src({ type: file.type, src: videoURL });
-                player.load();
-                player.play();
-            }
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                parseM3U(event.target.result);
+            };
+
+            reader.readAsText(file);
         }
 
-        // Event listener to play the next video when the current one ends
-        player.on('ended', playNextVideo);
+        function loadRemoteM3U() {
+            const playlistUrl = document.getElementById('playlistUrl').value.trim();
+            const errorDiv = document.getElementById('error');
 
-        // Fullscreen toggle with "F" key
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'f' || event.key === 'F') {
-                if (player.isFullscreen()) {
-                    player.exitFullscreen();
-                } else {
-                    player.requestFullscreen();
+            if (!playlistUrl) {
+                alert('Please enter a valid playlist URL.');
+                return;
+            }
+
+            fetch(playlistUrl)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then((data) => {
+                    parseM3U(data);
+                })
+                .catch((error) => {
+                    errorDiv.textContent = `Failed to load playlist: ${error.message}`;
+                });
+        }
+
+        function parseM3U(content) {
+            const channelList = document.getElementById('channelList');
+            const errorDiv = document.getElementById('error');
+            const lines = content.split('\n');
+            const streams = [];
+
+            // Parse M3U file
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith('#EXTINF')) {
+                    const name = lines[i].split(',')[1]?.trim() || 'Unknown Channel';
+                    const url = lines[i + 1]?.trim();
+                    if (url && url.startsWith('http')) {
+                        streams.push({ name, url });
+                    }
                 }
             }
-        });
-    </script>
 
+            channelList.innerHTML = '';
+            errorDiv.textContent = '';
+
+            if (streams.length === 0) {
+                alert('No valid streams found in the playlist.');
+                return;
+            }
+
+            streams.forEach((stream, index) => {
+                const li = document.createElement('li');
+                li.textContent = stream.name;
+                li.onclick = () => playStream(stream.url);
+                channelList.appendChild(li);
+            });
+
+            // Auto-play the first stream
+            playStream(streams[0].url);
+        }
+
+        function playStream(url) {
+            const videoPlayer = document.getElementById('videoPlayer');
+            const errorDiv = document.getElementById('error');
+
+            videoPlayer.style.display = 'block';
+
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(videoPlayer);
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    errorDiv.textContent = `Error: ${data.details}`;
+                });
+            } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                videoPlayer.src = url;
+            } else {
+                errorDiv.textContent = 'Your browser does not support this stream format.';
+            }
+
+            videoPlayer.play().catch((error) => {
+                errorDiv.textContent = 'Failed to play the stream. ' + error.message;
+            });
+        }
+    </script>
 </body>
 </html>
